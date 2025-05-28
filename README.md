@@ -56,13 +56,14 @@ En los eventos añade un ultimo evento tipo "Enviar Comando" seleciona el servid
 
 ## Opicional varias camaras envian alertas.
 
-Si tienes varias camaras, duplica la parte de eventos con diferentes nombres y los datos de IP, usuario y password
-
+## Si tienes varias camaras, duplica la parte de eventos con diferentes nombres y los datos de IP, usuario y password
+```
 /alerta-cam1 IP X.X.X.100
 /alerta-cam2 IP X.X.X.101
 /alerta-cam3 IP X.X.X.102
-
-# Configuración de cámaras (reemplazar con datos reales en producción)
+```
+## Configuración de cámaras (reemplazar con datos reales en producción)
+```
 CAMARAS = {
     "alerta-cam1": {
         "ip": "CAMERA_IP",
@@ -86,6 +87,7 @@ CAMARAS = {
         "message": "Acceso por puerta lateral"
     }
 }
+```
 ---
 
 MIT License.
