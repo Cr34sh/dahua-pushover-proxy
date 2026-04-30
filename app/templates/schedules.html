@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Horarios{% endblock %}
+{% block header_title %}Programación de Notificaciones{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8" x-data="{ locked: true }">
+    
+    <!-- Horarios Semanales -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-6 relative">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-gray-800">Horario Semanal</h3>
+            <button @click="locked = !locked" 
+                    :class="locked ? 'bg-slate-200 text-slate-700' : 'bg-red-100 text-red-700'"
+                    class="px-3 py-1.5 text-sm rounded-md font-medium transition">
+                <span x-text="locked ? '🔓 Desbloquear' : '🔒 Bloquear'"></span>
+            </button>
+        </div>
+        
+        <p class="text-sm text-gray-500 mb-6">Define en qué horas del día se permite el envío de notificaciones. Si una cámara detecta un evento fuera de estas horas, será ignorado.</p>
+
+        <form method="POST" action="{{ url_for('web.schedules') }}" :class="{ 'opacity-70 pointer-events-none': locked }">
+            <input type="hidden" name="action" value="save_schedules">
+            
+            <div class="space-y-4">
+                {% set days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] %}
+                {% for i in range(7) %}
+                {% set s = schedules.get(i) %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md border border-gray-100">
+                    <span class="font-medium text-gray-700 w-24">{{ days[i] }}</span>
+                    <div class="flex items-center space-x-2">
+                        <input type="time" name="start_{{ i }}" value="{{ s.start_time.strftime('%H:%M') if s else '00:00' }}" class="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-blue-500">
+                        <span class="text-gray-400">a</span>
+                        <input type="time" name="end_{{ i }}" value="{{ s.end_time.strftime('%H:%M') if s else '23:59' }}" class="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-blue-500">
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="mt-6 pt-4 border-t border-gray-100 flex justify-end">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition shadow-sm">
+                    Guardar Horarios
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Festivos -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-2">Días Festivos</h3>
+        <p class="text-sm text-gray-500 mb-6">Las notificaciones estarán <strong class="text-blue-600">activas todo el día (24h)</strong> durante las fechas añadidas como festivo.</p>
+
+        <div class="mb-6">
+            <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">Lista de Festivos</h4>
+            {% if holidays %}
+                <ul class="divide-y divide-gray-100 border border-gray-100 rounded-md">
+                    {% for h in holidays %}
+                    <li class="p-3 flex justify-between items-center bg-gray-50">
+                        <div>
+                            <div class="font-medium text-gray-800">{{ h.date.strftime('%d/%m/%Y') }}</div>
+                            <div class="text-xs text-gray-500">{{ h.description }}</div>
+                        </div>
+                        <form method="POST" action="{{ url_for('web.schedules') }}">
+                            <input type="hidden" name="action" value="delete_holiday">
+                            <input type="hidden" name="holiday_id" value="{{ h.id }}">
+                            <button type="submit" :disabled="locked" :class="{ 'opacity-50 cursor-not-allowed': locked }" class="text-red-500 hover:text-red-700 p-1">🗑️</button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="p-4 bg-gray-50 rounded-md text-center text-gray-500 text-sm border border-gray-100">
+                    No hay festivos configurados.
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="pt-4 border-t border-gray-100">
+            <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">Añadir Festivo</h4>
+            <form method="POST" action="{{ url_for('web.schedules') }}" class="space-y-3">
+                <input type="hidden" name="action" value="add_holiday">
+                
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Fecha</label>
+                    <input type="date" name="date" required class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Descripción</label>
+                    <input type="text" name="description" placeholder="Ej: Año Nuevo" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-2 rounded-md transition text-sm">
+                    Añadir
+                </button>
+            </form>
+        </div>
+        <div class="pt-4 border-t border-gray-100 mt-6">
+            <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">Importación Automática (España)</h4>
+            <form method="POST" action="{{ url_for('web.schedules') }}" class="space-y-3">
+                <input type="hidden" name="action" value="import_holidays">
+                
+                <div class="flex space-x-2">
+                    <div class="w-1/3">
+                        <label class="block text-xs text-gray-500 mb-1">Año</label>
+                        <select name="year" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500">
+                            {% for y in range(current_year, current_year + 4) %}
+                            <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="w-2/3">
+                        <label class="block text-xs text-gray-500 mb-1">Región</label>
+                        <select name="region" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500">
+                            <option value="ALL">Nacional (Toda España)</option>
+                            <option value="AN">Andalucía</option>
+                            <option value="AR">Aragón</option>
+                            <option value="AS">Asturias</option>
+                            <option value="CN">Canarias</option>
+                            <option value="CB">Cantabria</option>
+                            <option value="CM">Castilla-La Mancha</option>
+                            <option value="CL">Castilla y León</option>
+                            <option value="CT">Cataluña</option>
+                            <option value="EX">Extremadura</option>
+                            <option value="GA">Galicia</option>
+                            <option value="IB">Islas Baleares</option>
+                            <option value="RI">La Rioja</option>
+                            <option value="MD">Madrid</option>
+                            <option value="MC">Murcia</option>
+                            <option value="NC">Navarra</option>
+                            <option value="PV">País Vasco</option>
+                            <option value="CE">Ceuta</option>
+                            <option value="ML">Melilla</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-md transition text-sm">
+                    ⬇️ Importar Festivos
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

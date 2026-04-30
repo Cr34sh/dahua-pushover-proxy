@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración{% endblock %}
+{% block header_title %}Configuración Global{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl" x-data="{ locked: true }">
+
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Servicios de Notificación</h2>
+        <button @click="locked = !locked" 
+                :class="locked ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-red-100 text-red-700 hover:bg-red-200'"
+                class="px-4 py-2 rounded-md font-medium flex items-center transition">
+            <span x-text="locked ? '🔓 Desbloquear Edición' : '🔒 Bloquear Edición'"></span>
+        </button>
+    </div>
+
+    <form method="POST" action="{{ url_for('web.settings') }}" enctype="multipart/form-data" :class="{ 'opacity-80 pointer-events-none': locked }">
+        
+        <!-- Pushover Section -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-6 mb-6">
+            <div class="flex items-center mb-4">
+                <span class="text-2xl mr-3">📱</span>
+                <h3 class="text-lg font-bold text-gray-800">Pushover</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">App Token</label>
+                    <input type="text" name="pushover_token" value="{{ settings.get('pushover_token', '') }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">User Key</label>
+                    <input type="text" name="pushover_user" value="{{ settings.get('pushover_user', '') }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Section -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-6 mb-6" x-data="{ provider: '{{ settings.get('email_provider', 'none') }}' }">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center">
+                    <span class="text-2xl mr-3">📧</span>
+                    <h3 class="text-lg font-bold text-gray-800">Correo Electrónico</h3>
+                </div>
+                <div>
+                    <select name="email_provider" x-model="provider" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-gray-50 font-medium text-gray-700">
+                        <option value="none">Deshabilitado Globalmente</option>
+                        <option value="smtp">Usar SMTP Clásico</option>
+                        <option value="o365">Usar Microsoft 365 (Graph API)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <p class="text-sm text-gray-500 mb-6 border-b pb-4">Elige arriba qué motor de envío de correo deseas utilizar para las cámaras que tengan la opción 'Email' activada.</p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- SMTP Config -->
+                <div class="p-4 bg-gray-50 rounded-md border border-gray-200" x-show="provider === 'smtp'" x-transition x-cloak>
+                    <h4 class="font-semibold text-gray-700 mb-3 text-sm uppercase">Configuración SMTP</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Servidor SMTP</label>
+                            <input type="text" name="smtp_server" value="{{ settings.get('smtp_server', '') }}" placeholder="smtp.gmail.com" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Puerto (TLS)</label>
+                            <input type="text" name="smtp_port" value="{{ settings.get('smtp_port', '587') }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Usuario SMTP</label>
+                            <input type="text" name="smtp_user" value="{{ settings.get('smtp_user', '') }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Contraseña</label>
+                            <input type="password" name="smtp_pass" value="{{ settings.get('smtp_pass', '') }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- O365 Config -->
+                <div class="p-4 bg-blue-50 rounded-md border border-blue-200" x-show="provider === 'o365'" x-transition x-cloak>
+                    <h4 class="font-semibold text-blue-800 mb-3 text-sm uppercase">Microsoft 365 (Graph API)</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-medium text-blue-900 mb-1">Tenant ID</label>
+                            <input type="text" name="ms_tenant_id" value="{{ settings.get('ms_tenant_id', '') }}" class="w-full px-3 py-2 border border-blue-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-medium text-blue-900 mb-1">Client ID (App ID)</label>
+                            <input type="text" name="ms_client_id" value="{{ settings.get('ms_client_id', '') }}" class="w-full px-3 py-2 border border-blue-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-medium text-blue-900 mb-1">Client Secret</label>
+                            <input type="password" name="ms_client_secret" value="{{ settings.get('ms_client_secret', '') }}" class="w-full px-3 py-2 border border-blue-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Common Email Fields -->
+                <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Remitente (From)</label>
+                        <input type="text" name="smtp_from" value="{{ settings.get('smtp_from', '') }}" placeholder="alertas@dominio.com" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                        <p class="text-xs text-gray-500 mt-1">Para O365, este buzón debe pertenecer al Tenant.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Destinatario (To)</label>
+                        <input type="text" name="smtp_to" value="{{ settings.get('smtp_to', '') }}" placeholder="admin@dominio.com" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FTP Section -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-6 mb-6">
+            <div class="flex items-center mb-4">
+                <span class="text-2xl mr-3">📁</span>
+                <h3 class="text-lg font-bold text-gray-800">Servidor FTP</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Servidor FTP</label>
+                    <input type="text" name="ftp_server" value="{{ settings.get('ftp_server', '') }}" placeholder="ftp.midominio.com" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Puerto</label>
+                    <input type="text" name="ftp_port" value="{{ settings.get('ftp_port', '21') }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Usuario FTP</label>
+                    <input type="text" name="ftp_user" value="{{ settings.get('ftp_user', '') }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña FTP</label>
+                    <input type="password" name="ftp_pass" value="{{ settings.get('ftp_pass', '') }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ruta Base</label>
+                    <input type="text" name="ftp_path" value="{{ settings.get('ftp_path', '/') }}" placeholder="/" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 sm:text-sm">
+                    <p class="text-xs text-gray-500 mt-1">Se crearán carpetas con el nombre de cada cámara dentro de esta ruta.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Branding Section -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-6 mb-6">
+            <div class="flex items-center mb-4">
+                <span class="text-2xl mr-3">🎨</span>
+                <h3 class="text-lg font-bold text-gray-800">Personalización Corporativa</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Subir Logo Corporativo</label>
+                    <input type="file" name="logo_file" accept=".png, .jpg, .jpeg" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 sm:text-sm bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <p class="text-xs text-gray-500 mt-2">Formatos aceptados: PNG, JPG. Recomendado: fondo transparente (PNG), proporciones horizontales aprox. 250x80px.</p>
+                </div>
+                <div class="flex items-center justify-center p-4 bg-gray-100 rounded-md border border-gray-200 border-dashed">
+                    <div class="text-center">
+                        <span class="block text-xs text-gray-500 mb-2">Previsualización actual:</span>
+                        <img src="{{ url_for('web.get_custom_logo') }}" alt="Logo Actual" class="h-10 object-contain mx-auto">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-md transition shadow-md text-lg">
+                💾 Guardar Toda la Configuración
+            </button>
+        </div>
+
+    </form>
+</div>
+{% endblock %}

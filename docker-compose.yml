@@ -1,19 +1,15 @@
 version: '3.8'
 
 services:
-  dahua-proxy:
-    image: python:3.11-slim
-    container_name: dahua-pushover
-    working_dir: /app
-    volumes:
-      - ./app:/app
-    ports:
-      - 5005:5000
-    command: >
-      sh -c "pip install flask requests &&
-             python app.py"
-    environment:
-      - PUSHOVER_TOKEN=${PUSHOVER_TOKEN}
-      - PUSHOVER_USER=${PUSHOVER_USER}
+  campush:
+    build: .
+    container_name: campush
     restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - SECRET_KEY=changeme_in_production_12345
+      - FLASK_ENV=production
 networks: {}

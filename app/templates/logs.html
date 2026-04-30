@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Logs{% endblock %}
+{% block header_title %}Registro de Notificaciones{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl">
+
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">Historial de Envíos</h2>
+            <p class="text-sm text-gray-500 mt-1">Se retienen los últimos 30 días automáticamente.</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('web.logs') }}" onsubmit="return confirm('¿Estás seguro de querer borrar todo el historial?');">
+            <input type="hidden" name="action" value="clear">
+            <button type="submit" class="bg-red-100 text-red-700 hover:bg-red-200 px-4 py-2 rounded-md font-medium flex items-center transition">
+                🗑️ Limpiar Logs
+            </button>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha / Hora</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cámara</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Evento</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Push</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">FTP</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for log in logs %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 font-medium">
+                        {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
+                        {{ log.camera_name }}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-blue-600">
+                        {{ log.event_type }}
+                    </td>
+                    
+                    <!-- Push Status -->
+                    <td class="px-4 py-3 text-xs">
+                        {% if log.status_push == 'N/A' %}
+                            <span class="text-gray-400 italic">Desactivado</span>
+                        {% elif log.status_push == 'Enviado' %}
+                            <span class="inline-flex bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">✅ Enviado</span>
+                        {% else %}
+                            <span class="inline-flex bg-red-100 text-red-800 px-2 py-1 rounded font-medium truncate max-w-xs" title="{{ log.status_push }}">❌ {{ log.status_push }}</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Email Status -->
+                    <td class="px-4 py-3 text-xs">
+                        {% if log.status_email == 'N/A' %}
+                            <span class="text-gray-400 italic">Desactivado</span>
+                        {% elif log.status_email == 'Enviado' %}
+                            <span class="inline-flex bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">✅ Enviado</span>
+                        {% else %}
+                            <span class="inline-flex bg-red-100 text-red-800 px-2 py-1 rounded font-medium truncate max-w-xs" title="{{ log.status_email }}">❌ {{ log.status_email }}</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- FTP Status -->
+                    <td class="px-4 py-3 text-xs">
+                        {% if log.status_ftp == 'N/A' %}
+                            <span class="text-gray-400 italic">Desactivado</span>
+                        {% elif log.status_ftp == 'Enviado' %}
+                            <span class="inline-flex bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">✅ Enviado</span>
+                        {% else %}
+                            <span class="inline-flex bg-red-100 text-red-800 px-2 py-1 rounded font-medium truncate max-w-xs" title="{{ log.status_ftp }}">❌ {{ log.status_ftp }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                        No hay registros de notificaciones en los últimos 30 días.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

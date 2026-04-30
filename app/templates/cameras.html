@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Cámaras{% endblock %}
+{% block header_title %}Gestión de Cámaras{% endblock %}
+
+{% block content %}
+<div x-data="{ locked: true }" class="max-w-6xl">
+    
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Cámaras Configuradas</h2>
+        <div class="flex space-x-3">
+            <button @click="locked = !locked" 
+                    :class="locked ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-red-100 text-red-700 hover:bg-red-200'"
+                    class="px-4 py-2 rounded-md font-medium flex items-center transition">
+                <span x-text="locked ? '🔓 Desbloquear Edición' : '🔒 Bloquear Edición'"></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Mass Actions -->
+    <div class="mb-4 flex items-center space-x-2 text-sm">
+        <span class="text-gray-500 font-medium mr-2">Acciones Masivas:</span>
+        <form method="POST" action="{{ url_for('web.cameras') }}" onsubmit="return confirm('¿Activar Push para TODAS las cámaras?');">
+            <input type="hidden" name="action" value="mass_enable_push">
+            <button type="submit" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded border border-blue-200 transition font-medium">Activar Push en Todas</button>
+        </form>
+        <form method="POST" action="{{ url_for('web.cameras') }}" onsubmit="return confirm('¿Activar Email para TODAS las cámaras?');">
+            <input type="hidden" name="action" value="mass_enable_email">
+            <button type="submit" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded border border-blue-200 transition font-medium">Activar Email en Todas</button>
+        </form>
+        <form method="POST" action="{{ url_for('web.cameras') }}" onsubmit="return confirm('¿Activar FTP para TODAS las cámaras?');">
+            <input type="hidden" name="action" value="mass_enable_ftp">
+            <button type="submit" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded border border-blue-200 transition font-medium">Activar FTP en Todas</button>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-8">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre / ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP / Auth</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Notificaciones</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for cam in cameras %}
+                <tr x-data="{ showPass: false }">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-medium text-gray-900">{{ cam.name }}</div>
+                        <div class="text-sm text-gray-500">ID: {{ cam.id }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900 font-mono">{{ cam.ip }}</div>
+                        <div class="text-xs text-gray-500 flex items-center gap-2 mt-1">
+                            <span>{{ cam.username }}</span>
+                            <span class="text-gray-300">|</span>
+                            <span class="font-mono bg-gray-100 px-1 rounded cursor-pointer" @click="showPass = !showPass" x-text="showPass ? '{{ cam.password }}' : '••••••••'"></span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <form method="POST" action="{{ url_for('web.cameras') }}" class="flex items-center justify-center space-x-4">
+                            <input type="hidden" name="action" value="update_notifications">
+                            <input type="hidden" name="cam_id" value="{{ cam.id }}">
+                            
+                            <label class="flex items-center space-x-2 cursor-pointer" :class="{ 'opacity-50 cursor-not-allowed': locked }">
+                                <input type="checkbox" name="enable_push" onChange="if(!locked) this.form.submit()" :disabled="locked" {% if cam.enable_push %}checked{% endif %} class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-gray-700">Push</span>
+                            </label>
+                            
+                            <label class="flex items-center space-x-2 cursor-pointer" :class="{ 'opacity-50 cursor-not-allowed': locked }">
+                                <input type="checkbox" name="enable_email" onChange="if(!locked) this.form.submit()" :disabled="locked" {% if cam.enable_email %}checked{% endif %} class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-gray-700">Email</span>
+                            </label>
+
+                            <label class="flex items-center space-x-2 cursor-pointer" :class="{ 'opacity-50 cursor-not-allowed': locked }">
+                                <input type="checkbox" name="enable_ftp" onChange="if(!locked) this.form.submit()" :disabled="locked" {% if cam.enable_ftp %}checked{% endif %} class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-gray-700">FTP</span>
+                            </label>
+                        </form>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex items-center justify-end space-x-3">
+                            <form method="POST" action="{{ url_for('web.cameras') }}">
+                                <input type="hidden" name="action" value="test">
+                                <input type="hidden" name="cam_id" value="{{ cam.id }}">
+                                <button type="submit" class="text-blue-600 hover:text-blue-900 transition flex items-center" title="Probar conexión y notificaciones">
+                                    <span class="mr-1">🧪</span> Probar
+                                </button>
+                            </form>
+                            <span class="text-gray-300">|</span>
+                            <form method="POST" action="{{ url_for('web.cameras') }}" onsubmit="return confirm('¿Estás seguro de eliminar esta cámara?');">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="cam_id" value="{{ cam.id }}">
+                                <button type="submit" :disabled="locked" :class="{ 'opacity-50 cursor-not-allowed': locked }" class="text-red-600 hover:text-red-900 transition">Eliminar</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="px-6 py-8 text-center text-gray-500">
+                        No hay cámaras configuradas. Añade una nueva debajo.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add Camera Form -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Añadir Nueva Cámara</h3>
+        <form method="POST" action="{{ url_for('web.cameras') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+            <input type="hidden" name="action" value="add">
+            
+            <div class="lg:col-span-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre / ID</label>
+                <input type="text" name="name" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Ej: Puerta Principal">
+            </div>
+            
+            <div class="lg:col-span-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Dirección IP</label>
+                <input type="text" name="ip" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="192.168.1.100">
+            </div>
+            
+            <div class="lg:col-span-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+                <input type="text" name="username" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="admin">
+            </div>
+            
+            <div class="lg:col-span-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                <input type="text" name="password" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="••••••••">
+            </div>
+
+            <div class="lg:col-span-1 flex flex-col justify-center pb-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Notificaciones</label>
+                <div class="flex space-x-3">
+                    <label class="flex items-center space-x-1 cursor-pointer">
+                        <input type="checkbox" name="enable_push" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="text-xs text-gray-700">Push</span>
+                    </label>
+                    <label class="flex items-center space-x-1 cursor-pointer">
+                        <input type="checkbox" name="enable_email" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="text-xs text-gray-700">Mail</span>
+                    </label>
+                    <label class="flex items-center space-x-1 cursor-pointer">
+                        <input type="checkbox" name="enable_ftp" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="text-xs text-gray-700">FTP</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="lg:col-span-1">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    ➕ Añadir
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+# Entornos virtuales
+venv/
+env/
+.env
+.venv/
+__pycache__/
+*.pyc
+
+# Datos persistentes del usuario
+data/
+
+# IDEs y SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

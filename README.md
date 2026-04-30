@@ -1,95 +1,53 @@
-# Dahua to Pushover Proxy
+# CamPush (Dahua to Pushover Proxy)
 
-Este microservicio permite recibir eventos de cámaras Dahua (como detección de movimiento o reconocimiento facial) y enviar notificaciones enriquecidas a Pushover con imágenes adjuntas en tiempo real.
+CamPush es una solución escalable para entornos corporativos que actúa como puente entre cámaras de seguridad Dahua y múltiples servicios de notificación (Pushover, Email, FTP).
 
-## Estructura del proyecto
+## 🚀 Características (v0.9 Alpha/Beta)
 
-```
-dahua-pushover-proxy/
-├── app/
-│   └── app.py
-├── docker-compose.yml
-├── .env.example
-└── README.md
-```
+- **Panel Web Administrativo**: Gestiona todas tus cámaras y configuraciones desde una interfaz web moderna y centralizada.
+- **Multiusuario**: Sistema protegido por usuario y contraseña, con gestión de cuentas de operadores.
+- **Multi-Notificación Simultánea**:
+  - **Pushover**: Notificaciones móviles inmediatas y enriquecidas con imagen.
+  - **Email (SMTP Clásico)**: Soporte para envíos estándar por servidores de correo.
+  - **Email (Microsoft 365 - Graph API)**: *[En fase de pruebas]* Integración nativa sin necesidad de protocolos SMTP inseguros. 
+  - **FTP**: Subida automática de capturas ordenadas en carpetas por cámara.
+- **Motor de Eventos y Diagnóstico**:
+  - Catálogo de eventos predefinidos: Movimiento, Cruce de línea, Reconocimiento Facial, Matrículas, Errores de SD, Alarmas, Manipulación (Tampering) y Detección de Audio.
+  - **Botón "Probar"**: Herramienta de diagnóstico síncrono para verificar conexión a la cámara y entrega de notificaciones en tiempo real, sin depender de alarmas físicas.
+- **Control y Auditoría**: 
+  - **Registro de notificaciones enviadas**: Un historial detallado con autolimpieza de 30 días para trazar el éxito o fallo técnico de cada envío por canal.
+- **Horarios e Inteligencia Geográfica**: 
+  - Define horas activas semanales.
+  - Importación automática offline de Festivos (Nacionales y Autonómicos de España) para silenciar alertas en días no laborables.
+- **Personalización Visual**: Permite la carga de un logo corporativo propio desde la interfaz web, conservándose en el entorno de despliegue.
 
-## Instalación
+## 📦 Instalación (Docker)
 
-1. Clona este repositorio:
-```bash
-git clone https://github.com/Cr34sh/dahua-pushover-proxy.git
-cd dahua-pushover-proxy
-```
+La arquitectura de despliegue principal es **Docker**. Todos los datos sensibles, bases de datos y logotipos se almacenan en un volumen persistente seguro (`/data`).
 
-2. Crea un archivo `.env` basado en `.env.example`:
+1. Asegúrate de tener instalado `docker` y `docker-compose` en tu servidor.
+2. Clona este repositorio:
+   ```bash
+   git clone https://github.com/Cr34sh/dahua-pushover-proxy.git
+   cd dahua-pushover-proxy
+   ```
+3. Construye y levanta el contenedor:
+   ```bash
+   docker-compose up -d --build
+   ```
+4. El servicio estará disponible en el puerto `8080` de tu servidor. 
+   - Acceso Web: `http://TU_IP_DEL_SERVIDOR:8080`
+   - **Credenciales iniciales**: `admin` / `admin` *(Se recomienda encarecidamente cambiar la contraseña en el primer inicio de sesión)*.
 
-```bash
-cp .env.example .env
-```
+## 📷 Configuración de Cámaras Dahua
 
-3. Edita `app/app.py` y reemplaza las IPs, usuarios y contraseñas de tus cámaras Dahua.
+1. Entra al menú de configuración web de tu cámara Dahua.
+2. Ve a **Event > Alarm > Alarm Server** (o equivalente en tu modelo) y añade un servidor:
+   - **Address:** La IP donde está instalado CamPush.
+   - **Port:** 8080.
+3. En las opciones del evento (ej. Detección de Movimiento, IVS), activa la opción **Send Command** o **HTTP Post**.
+4. Usa como comando el identificador del evento (ej: `movimiento`, `cara` o `alarma`).
+   - La URL completa a la que llamará la cámara será `http://TU_IP_DEL_SERVIDOR/movimiento`. CamPush identificará qué cámara ha saltado gracias a su dirección IP de origen, obteniendo la captura y enviando las notificaciones configuradas.
 
-4. Inicia el servicio:
-
-```bash
-docker-compose up -d
-```
-
-## Uso
-
-Haz que la cámara Dahua dispare peticiones HTTP GET a las siguientes rutas según el evento:
-
-- `/alerta` → Movimiento
-- `/cara` → Reconocimiento facial
-- `/puerta` → Acceso
-
-Por ejemplo:
-
-```
-http://TU_SERVIDOR:5005/alerta
-```
-En el menu de la cámara crea el servidor (http://IPCAMARA/#/index/ServerList) 
-Con los datos del Proxy IP y Puerto 
-
-En los eventos añade un ultimo evento tipo "Enviar Comando" seleciona el servidor y añade el comando "alerta", "cara" ...
-
-
-## Opicional varias camaras envian alertas.
-
-Si tienes varias camaras, duplica la parte de eventos con diferentes nombres y los datos de IP, usuario y password
-
-```
-/alerta-cam1 IP X.X.X.100
-/alerta-cam2 IP X.X.X.101
-/alerta-cam3 IP X.X.X.102
-```
-Configuración de cámaras (reemplazar con datos reales en producción)
-
-```
-CAMARAS = {
-    "alerta-cam1": {
-        "ip": "CAMERA_IP",
-        "user": "CAMERA_USER",
-        "pass": "CAMERA_PASS",
-        "title": "Movimiento",
-        "message": "Detectado en cámara del patio"
-    },
-    "alerta-cam2": {
-        "ip": "CAMERA_IP",
-        "user": "CAMERA_USER",
-        "pass": "CAMERA_PASS",
-        "title": "Reconocimiento facial",
-        "message": "Se ha detectado una cara en la entrada"
-    },
-    "alerta-cam3": {
-        "ip": "CAMERA_IP",
-        "user": "CAMERA_USER",
-        "pass": "CAMERA_PASS",
-        "title": "Puerta abierta",
-        "message": "Acceso por puerta lateral"
-    }
-}
-```
 ---
-
-MIT License.
+Licencia MIT.
