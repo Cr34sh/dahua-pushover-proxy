@@ -47,35 +47,53 @@
                     </td>
                     
                     <!-- Push Status -->
-                    <td class="px-4 py-3 text-xs">
+                    <td class="px-4 py-3 text-xs align-top">
                         {% if log.status_push == 'N/A' %}
                             <span class="text-gray-400 italic">Desactivado</span>
                         {% elif log.status_push == 'Enviado' %}
                             <span class="inline-flex bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">✅ Enviado</span>
+                        {% elif log.status_push == 'Ignorado (Horario)' %}
+                            <span class="inline-flex bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-medium">⏸️ Horario</span>
+                        {% elif log.status_push == 'Procesando...' %}
+                            <span class="inline-flex bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium animate-pulse">⏳ Procesando...</span>
+                        {% elif log.status_push == 'IP Rechazada' %}
+                            <span class="inline-flex bg-gray-200 text-gray-800 px-2 py-1 rounded-full font-medium">🚫 IP Rechazada</span>
                         {% else %}
-                            <span class="inline-flex bg-red-100 text-red-800 px-2 py-1 rounded font-medium truncate max-w-xs" title="{{ log.status_push }}">❌ {{ log.status_push }}</span>
+                            <div class="inline-block bg-red-100 text-red-800 px-2 py-1 rounded font-medium max-h-24 overflow-y-auto whitespace-normal break-words max-w-xs">❌ {{ log.status_push }}</div>
                         {% endif %}
                     </td>
 
                     <!-- Email Status -->
-                    <td class="px-4 py-3 text-xs">
+                    <td class="px-4 py-3 text-xs align-top">
                         {% if log.status_email == 'N/A' %}
                             <span class="text-gray-400 italic">Desactivado</span>
                         {% elif log.status_email == 'Enviado' %}
                             <span class="inline-flex bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">✅ Enviado</span>
+                        {% elif log.status_email == 'Ignorado (Horario)' %}
+                            <span class="inline-flex bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-medium">⏸️ Horario</span>
+                        {% elif log.status_email == 'Procesando...' %}
+                            <span class="inline-flex bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium animate-pulse">⏳ Procesando...</span>
+                        {% elif log.status_email == 'IP Rechazada' %}
+                            <span class="inline-flex bg-gray-200 text-gray-800 px-2 py-1 rounded-full font-medium">🚫 IP Rechazada</span>
                         {% else %}
-                            <span class="inline-flex bg-red-100 text-red-800 px-2 py-1 rounded font-medium truncate max-w-xs" title="{{ log.status_email }}">❌ {{ log.status_email }}</span>
+                            <div class="inline-block bg-red-100 text-red-800 px-2 py-1 rounded font-medium max-h-24 overflow-y-auto whitespace-normal break-words max-w-xs">❌ {{ log.status_email }}</div>
                         {% endif %}
                     </td>
 
                     <!-- FTP Status -->
-                    <td class="px-4 py-3 text-xs">
+                    <td class="px-4 py-3 text-xs align-top">
                         {% if log.status_ftp == 'N/A' %}
                             <span class="text-gray-400 italic">Desactivado</span>
                         {% elif log.status_ftp == 'Enviado' %}
                             <span class="inline-flex bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">✅ Enviado</span>
+                        {% elif log.status_ftp == 'Ignorado (Horario)' %}
+                            <span class="inline-flex bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-medium">⏸️ Horario</span>
+                        {% elif log.status_ftp == 'Procesando...' %}
+                            <span class="inline-flex bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium animate-pulse">⏳ Procesando...</span>
+                        {% elif log.status_ftp == 'IP Rechazada' %}
+                            <span class="inline-flex bg-gray-200 text-gray-800 px-2 py-1 rounded-full font-medium">🚫 IP Rechazada</span>
                         {% else %}
-                            <span class="inline-flex bg-red-100 text-red-800 px-2 py-1 rounded font-medium truncate max-w-xs" title="{{ log.status_ftp }}">❌ {{ log.status_ftp }}</span>
+                            <div class="inline-block bg-red-100 text-red-800 px-2 py-1 rounded font-medium max-h-24 overflow-y-auto whitespace-normal break-words max-w-xs">❌ {{ log.status_ftp }}</div>
                         {% endif %}
                     </td>
                 </tr>
