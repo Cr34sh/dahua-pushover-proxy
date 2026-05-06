@@ -3,7 +3,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
-from .models import db, User, Setting, EventTemplate
+from .models import db, User, Setting, EventTemplate, Schedule
+from datetime import time
 
 bcrypt = Bcrypt()
 login_manager = LoginManager()
@@ -55,6 +56,17 @@ def create_app():
             db.session.bulk_save_objects(default_events)
             db.session.commit()
             print("Eventos por defecto inicializados.")
+
+        # Seed default 24/7 schedule if it doesn't exist
+        if not Schedule.query.first():
+            default_schedules = []
+            for day in range(7):
+                default_schedules.append(
+                    Schedule(day_of_week=day, start_time=time(0, 0), end_time=time(23, 59))
+                )
+            db.session.bulk_save_objects(default_schedules)
+            db.session.commit()
+            print("Horarios 24/7 por defecto inicializados.")
 
     # Import and register blueprints
     from .routes_web import web_bp

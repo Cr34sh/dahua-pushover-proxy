@@ -80,12 +80,18 @@ def process_notifications(app_context, camera_id, event_type, temp_path):
 
 @api_bp.route('/<event_type>', methods=['GET'])
 def webhook(event_type):
-    # Get request IP
-    source_ip = request.remote_addr
-    # For testing behind proxies, might need: request.headers.get('X-Forwarded-For', request.remote_addr)
+    # Get request IP: allow test_ip parameter for manual testing, then X-Forwarded-For, then remote_addr
+    source_ip = request.args.get('test_ip')
+    if not source_ip:
+        forwarded = request.headers.get('X-Forwarded-For')
+        if forwarded:
+            source_ip = forwarded.split(',')[0].strip()
+        else:
+            source_ip = request.remote_addr
     
     # Check if active
-    if not is_active_now():
+    force_test = request.args.get('force', type=int) == 1
+    if not is_active_now() and not force_test:
         logger.info(f"Ignored event '{event_type}' from {source_ip} due to schedule.")
         return jsonify({"status": "ignored", "reason": "schedule"}), 200
         
