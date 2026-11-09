@@ -1,0 +1,14 @@
+# Ejemplo de ajustes propios del despliegue. Copiar a docker-compose.override.yml
+# (no se versiona). Docker Compose lo combina automáticamente con docker-compose.yml.
+services:
+  campush:
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+    networks:
+      mi_red:
+        ipv4_address: 10.0.0.10
+
+networks:
+  mi_red:
+    external: true

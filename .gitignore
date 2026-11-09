@@ -9,6 +9,11 @@ __pycache__/
 # Datos persistentes del usuario
 data/
 
+# Configuración propia de cada despliegue y copias locales
+docker-compose.override.yml
+*.old
+*.bak
+
 # IDEs y SO
 .vscode/
 .idea/

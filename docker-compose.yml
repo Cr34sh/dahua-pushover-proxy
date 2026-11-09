@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   campush:
     build: .
@@ -10,6 +8,8 @@ services:
     volumes:
       - ./data:/app/data
     environment:
-      - SECRET_KEY=changeme_in_production_12345
+      - SECRET_KEY=${SECRET_KEY:?Define SECRET_KEY en el fichero .env}
       - FLASK_ENV=production
-networks: {}
+
+# Ajustes propios de cada despliegue (redes, IP fija, DNS...) van en
+# docker-compose.override.yml, que no se versiona.

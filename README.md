@@ -31,11 +31,18 @@ La arquitectura de despliegue principal es **Docker**. Todos los datos sensibles
    git clone https://github.com/Cr34sh/dahua-pushover-proxy.git
    cd dahua-pushover-proxy
    ```
-3. Construye y levanta el contenedor:
+3. Crea el fichero `.env` con la clave de sesión (no se versiona):
    ```bash
-   docker-compose up -d --build
+   cp .env.example .env
+   sed -i "s/^SECRET_KEY=.*/SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_hex(32))')/" .env
    ```
-4. El servicio estará disponible en el puerto `8080` de tu servidor. 
+   Los ajustes propios del despliegue (red externa, IP fija, DNS) se ponen en `docker-compose.override.yml`, partiendo de `docker-compose.override.yml.example`.
+4. Construye y levanta el contenedor:
+   ```bash
+   docker compose up -d --build
+   ```
+   La imagen incluye `ffmpeg`: si `snapshot.cgi` de una cámara falla, la captura se obtiene del flujo RTSP (puerto 554).
+5. El servicio estará disponible en el puerto `8080` de tu servidor. 
    - Acceso Web: `http://TU_IP_DEL_SERVIDOR:8080`
    - **Credenciales iniciales**: `admin` / `admin` *(Se recomienda encarecidamente cambiar la contraseña en el primer inicio de sesión)*.
 
