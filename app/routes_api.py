@@ -1,13 +1,11 @@
 from flask import Blueprint, request, jsonify
-import requests
-from requests.auth import HTTPDigestAuth
-import tempfile
 import os
 import threading
 import logging
 from .models import db, Camera, Setting, EventTemplate, NotificationLog
 from .utils_schedule import is_active_now
 from .utils_notify import get_settings, notify_pushover, notify_email, notify_ftp
+from .utils_snapshot import fetch_snapshot
 
 api_bp = Blueprint('api', __name__)
 logger = logging.getLogger(__name__)
@@ -120,21 +118,13 @@ def webhook(event_type):
         return jsonify({"status": "error", "reason": "unknown_ip"}), 404
         
     # Connect to camera and fetch snapshot
-    snapshot_url = f"http://{camera.ip}/cgi-bin/snapshot.cgi"
-    auth = HTTPDigestAuth(camera.username, camera.password)
-    
+    # (snapshot.cgi con reintento y fallback a RTSP)
     try:
-        r = requests.get(snapshot_url, auth=auth, stream=True, timeout=10)
-        if r.status_code != 200:
-            logger.error(f"Failed to get snapshot from {camera.name}: Status {r.status_code}")
-            return jsonify({"status": "error", "reason": "camera_unreachable"}), 502
-            
-        # Save to temp file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
-            for chunk in r.iter_content(1024):
-                tmp.write(chunk)
-            tmp_path = tmp.name
-            
+        tmp_path, err = fetch_snapshot(camera, timeout=10)
+        if not tmp_path:
+            logger.error(f"Failed to get snapshot from {camera.name}: {err}")
+            return jsonify({"status": "error", "reason": "camera_unreachable", "detail": err}), 502
+
         # Launch background thread for notifications
         from flask import current_app
         app_context = current_app.app_context()

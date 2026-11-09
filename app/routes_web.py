@@ -100,24 +100,16 @@ def cameras():
             cam_id = request.form.get('cam_id')
             cam = Camera.query.get(cam_id)
             if cam:
-                import requests
-                from requests.auth import HTTPDigestAuth
-                import tempfile
                 import os
                 from .utils_notify import get_settings, notify_pushover, notify_email, notify_ftp
-                
-                snapshot_url = f"http://{cam.ip}/cgi-bin/snapshot.cgi"
-                auth = HTTPDigestAuth(cam.username, cam.password)
+                from .utils_snapshot import fetch_snapshot
+
                 try:
-                    r = requests.get(snapshot_url, auth=auth, stream=True, timeout=5)
-                    if r.status_code != 200:
-                        flash(f'Error: La cámara no respondió a la captura (HTTP {r.status_code}). Verifica IP y credenciales.', 'danger')
+                    tmp_path, err = fetch_snapshot(cam, timeout=10)
+                    if not tmp_path:
+                        flash(f'Error: no se pudo obtener captura de la cámara ({err}). Verifica IP y credenciales.', 'danger')
                     else:
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
-                            for chunk in r.iter_content(1024):
-                                tmp.write(chunk)
-                            tmp_path = tmp.name
-                        
+
                         settings = get_settings(db, Setting)
                         title = f"Test desde {cam.name}"
                         message = "Esta es una notificación de prueba generada desde la interfaz web."
@@ -159,8 +151,8 @@ def cameras():
                             # Use info category for mixed results, or success
                             flash(f'Prueba completada: ' + ' | '.join(results), 'success')
                             
-                except requests.exceptions.RequestException as e:
-                    flash(f'Error de red al conectar con la cámara: {str(e)}', 'danger')
+                except Exception as e:
+                    flash(f'Error al obtener la captura: {str(e)}', 'danger')
 
         return redirect(url_for('web.cameras'))
         

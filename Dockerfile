@@ -5,6 +5,7 @@ WORKDIR /app
 # Install system dependencies if needed (e.g. for sqlite)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
