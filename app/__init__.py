@@ -21,6 +21,19 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(data_dir, 'campush.db')}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    # SQLite guarda CURRENT_TIMESTAMP en UTC: se convierte a la zona del contenedor (TZ) al mostrar
+    from datetime import timezone
+    from zoneinfo import ZoneInfo
+    local_tz = ZoneInfo(os.getenv('TZ', 'Europe/Madrid'))
+
+    @app.template_filter('localtime')
+    def localtime_filter(value, fmt='%Y-%m-%d %H:%M:%S'):
+        if value is None:
+            return ''
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(local_tz).strftime(fmt)
+
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)

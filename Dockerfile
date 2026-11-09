@@ -6,6 +6,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     ffmpeg \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
@@ -21,6 +22,8 @@ COPY app/ app/
 # Environment variables
 ENV FLASK_APP=app:create_app()
 ENV FLASK_ENV=production
+# Zona horaria para horarios activos y visualización de logs (sobrescribible con TZ)
+ENV TZ=Europe/Madrid
 
 # Expose port 80
 EXPOSE 80

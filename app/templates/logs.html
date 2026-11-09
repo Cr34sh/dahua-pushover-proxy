@@ -37,7 +37,7 @@
                 {% for log in logs %}
                 <tr class="hover:bg-gray-50 transition">
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 font-medium">
-                        {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                        {{ log.timestamp | localtime }}
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
                         {{ log.camera_name }}
